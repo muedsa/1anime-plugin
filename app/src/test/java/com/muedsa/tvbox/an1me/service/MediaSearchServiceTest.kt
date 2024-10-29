@@ -1,7 +1,7 @@
-package com.muedsa.tvbox.demoplugin.service
+package com.muedsa.tvbox.an1me.service
 
-import com.muedsa.tvbox.demoplugin.TestPlugin
-import com.muedsa.tvbox.demoplugin.checkMediaCardRow
+import com.muedsa.tvbox.an1me.TestPlugin
+import com.muedsa.tvbox.an1me.checkMediaCardRow
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 

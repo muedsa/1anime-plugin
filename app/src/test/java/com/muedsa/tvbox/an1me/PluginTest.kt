@@ -1,4 +1,4 @@
-package com.muedsa.tvbox.demoplugin
+package com.muedsa.tvbox.an1me
 
 import kotlinx.coroutines.test.runTest
 import org.junit.Test

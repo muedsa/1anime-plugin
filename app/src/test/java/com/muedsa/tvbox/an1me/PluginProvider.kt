@@ -1,9 +1,9 @@
-package com.muedsa.tvbox.demoplugin
+package com.muedsa.tvbox.an1me
 
 import com.muedsa.tvbox.api.plugin.TvBoxContext
 
 val TestPlugin by lazy {
-    DemoPlugin(
+    An1mePlugin(
         tvBoxContext = TvBoxContext(
             screenWidth = 1920,
             screenHeight = 1080,
