@@ -5,15 +5,18 @@ import com.muedsa.tvbox.api.data.MediaCard
 import com.muedsa.tvbox.api.data.MediaCardRow
 import com.muedsa.tvbox.api.data.MediaCardType
 import com.muedsa.tvbox.api.service.IMainScreenService
-import com.muedsa.tvbox.tool.ChromeUserAgent
+import com.muedsa.tvbox.tool.feignChrome
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
+import java.net.CookieStore
 
-class MainScreenService : IMainScreenService {
+class MainScreenService(
+    private val cookieStore: CookieStore
+) : IMainScreenService {
 
     override suspend fun getRowsData(): List<MediaCardRow> {
         val body = Jsoup.connect("${An1meConst.URL}/")
-            .userAgent(ChromeUserAgent)
+            .feignChrome(cookieStore = cookieStore)
             .get()
             .body()
         val rows: MutableList<MediaCardRow> = mutableListOf()

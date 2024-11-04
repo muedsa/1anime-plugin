@@ -4,14 +4,17 @@ import com.muedsa.tvbox.an1me.An1meConst
 import com.muedsa.tvbox.api.data.MediaCard
 import com.muedsa.tvbox.api.data.MediaCardRow
 import com.muedsa.tvbox.api.service.IMediaSearchService
-import com.muedsa.tvbox.tool.ChromeUserAgent
+import com.muedsa.tvbox.tool.feignChrome
 import org.jsoup.Jsoup
+import java.net.CookieStore
 
-class MediaSearchService : IMediaSearchService {
+class MediaSearchService(
+    private val cookieStore: CookieStore
+) : IMediaSearchService {
 
     override suspend fun searchMedias(query: String): MediaCardRow {
         val body = Jsoup.connect("${An1meConst.URL}/vodsearch/-------------.html?wd=$query")
-            .userAgent(ChromeUserAgent)
+            .feignChrome(cookieStore = cookieStore)
             .get()
             .body()
         val moduleEl = body.selectFirst("#main .content .module")

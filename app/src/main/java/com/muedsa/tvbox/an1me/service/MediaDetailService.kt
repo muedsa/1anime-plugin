@@ -14,20 +14,24 @@ import com.muedsa.tvbox.api.data.SavedMediaCard
 import com.muedsa.tvbox.api.service.IMediaDetailService
 import com.muedsa.tvbox.tool.ChromeUserAgent
 import com.muedsa.tvbox.tool.LenientJson
+import com.muedsa.tvbox.tool.feignChrome
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.Connection.Method
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import timber.log.Timber
+import java.net.CookieStore
 
-class MediaDetailService : IMediaDetailService {
+class MediaDetailService(
+    private val cookieStore: CookieStore
+) : IMediaDetailService {
 
     override suspend fun getDetailData(mediaId: String, detailUrl: String): MediaDetail {
         if (!detailUrl.startsWith("/voddetail/")) {
             throw RuntimeException("不支持的类型 $detailUrl")
         }
         val body = Jsoup.connect("${An1meConst.URL}$detailUrl")
-            .userAgent(ChromeUserAgent)
+            .feignChrome(cookieStore = cookieStore)
             .get()
             .body()
         val boxEl = body.selectFirst("#main .content .box")!!
@@ -159,7 +163,7 @@ class MediaDetailService : IMediaDetailService {
         }
         val url = "${An1meConst.URL}${episode.flag5}"
         val body = Jsoup.connect(url)
-            .userAgent(ChromeUserAgent)
+            .feignChrome(cookieStore = cookieStore)
             .get()
             .body()
         val scriptEl = body.selectFirst("#main .player-wrapper script")!!
@@ -182,7 +186,7 @@ class MediaDetailService : IMediaDetailService {
 
     private fun getHttpSourceFromDplayer(url: String): MediaHttpSource {
         val body = Jsoup.connect(url)
-            .userAgent(ChromeUserAgent)
+            .feignChrome(cookieStore = cookieStore)
             .get()
             .body()
         val token = An1meConst.DPLAYER_VIDEO_TOKEN_REGEX.find(body.html())?.groups?.get(1)?.value
@@ -197,7 +201,7 @@ class MediaDetailService : IMediaDetailService {
             .build()
             .toString()
         val respStr = Jsoup.connect(getUrl)
-            .userAgent(ChromeUserAgent)
+            .feignChrome(cookieStore = cookieStore)
             .method(Method.GET)
             .execute()
             .body()
