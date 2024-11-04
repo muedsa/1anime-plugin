@@ -11,11 +11,12 @@ import org.jsoup.nodes.Element
 import java.net.CookieStore
 
 class MainScreenService(
+    private val an1meService: An1meService,
     private val cookieStore: CookieStore
 ) : IMainScreenService {
 
     override suspend fun getRowsData(): List<MediaCardRow> {
-        val body = Jsoup.connect("${An1meConst.URL}/")
+        val body = Jsoup.connect("${an1meService.getSiteUrl()}/")
             .feignChrome(cookieStore = cookieStore)
             .get()
             .body()

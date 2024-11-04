@@ -23,6 +23,7 @@ import timber.log.Timber
 import java.net.CookieStore
 
 class MediaDetailService(
+    private val an1meService: An1meService,
     private val cookieStore: CookieStore
 ) : IMediaDetailService {
 
@@ -30,7 +31,7 @@ class MediaDetailService(
         if (!detailUrl.startsWith("/voddetail/")) {
             throw RuntimeException("不支持的类型 $detailUrl")
         }
-        val body = Jsoup.connect("${An1meConst.URL}$detailUrl")
+        val body = Jsoup.connect("${an1meService.getSiteUrl()}$detailUrl")
             .feignChrome(cookieStore = cookieStore)
             .get()
             .body()
@@ -161,7 +162,7 @@ class MediaDetailService(
         if (episode.flag5.isNullOrEmpty() || !episode.flag5!!.startsWith("/vodplay/")) {
             throw RuntimeException("不支持的播放地址-> ${episode.flag5}")
         }
-        val url = "${An1meConst.URL}${episode.flag5}"
+        val url = "${an1meService.getSiteUrl()}${episode.flag5}"
         val body = Jsoup.connect(url)
             .feignChrome(cookieStore = cookieStore)
             .get()

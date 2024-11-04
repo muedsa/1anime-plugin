@@ -1,5 +1,6 @@
 package com.muedsa.tvbox.an1me
 
+import com.muedsa.tvbox.an1me.service.An1meService
 import com.muedsa.tvbox.an1me.service.MainScreenService
 import com.muedsa.tvbox.an1me.service.MediaDetailService
 import com.muedsa.tvbox.an1me.service.MediaSearchService
@@ -16,9 +17,25 @@ class An1mePlugin(tvBoxContext: TvBoxContext) : IPlugin(tvBoxContext = tvBoxCont
     override var options: PluginOptions = PluginOptions(enableDanDanPlaySearch = true)
 
     private val cookieStore by lazy { PluginCookieStore(saver = SharedCookieSaver(store = tvBoxContext.store)) }
-    private val mainScreenService by lazy { MainScreenService(cookieStore = cookieStore) }
-    private val mediaDetailService by lazy { MediaDetailService(cookieStore = cookieStore) }
-    private val mediaSearchService by lazy { MediaSearchService(cookieStore = cookieStore) }
+    private val an1meService by lazy { An1meService() }
+    private val mainScreenService by lazy {
+        MainScreenService(
+            an1meService = an1meService,
+            cookieStore = cookieStore
+        )
+    }
+    private val mediaDetailService by lazy {
+        MediaDetailService(
+            an1meService = an1meService,
+            cookieStore = cookieStore
+        )
+    }
+    private val mediaSearchService by lazy {
+        MediaSearchService(
+            an1meService = an1meService,
+            cookieStore = cookieStore
+        )
+    }
     override fun provideMainScreenService(): IMainScreenService = mainScreenService
     override fun provideMediaDetailService(): IMediaDetailService = mediaDetailService
     override fun provideMediaSearchService(): IMediaSearchService = mediaSearchService

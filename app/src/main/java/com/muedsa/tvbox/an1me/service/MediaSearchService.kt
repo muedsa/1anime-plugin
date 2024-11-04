@@ -9,11 +9,12 @@ import org.jsoup.Jsoup
 import java.net.CookieStore
 
 class MediaSearchService(
+    private val an1meService: An1meService,
     private val cookieStore: CookieStore
 ) : IMediaSearchService {
 
     override suspend fun searchMedias(query: String): MediaCardRow {
-        val body = Jsoup.connect("${An1meConst.URL}/vodsearch/-------------.html?wd=$query")
+        val body = Jsoup.connect("${an1meService.getSiteUrl()}/vodsearch/-------------.html?wd=$query")
             .feignChrome(cookieStore = cookieStore)
             .get()
             .body()

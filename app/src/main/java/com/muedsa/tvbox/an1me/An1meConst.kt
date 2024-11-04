@@ -1,7 +1,6 @@
 package com.muedsa.tvbox.an1me
 
 object An1meConst {
-    const val URL = "https://acg.d1dm.top"
     const val CARD_WIDTH = 125
     const val CARD_HEIGHT = 175
     const val NOT_IMAGE_CARD_WIDTH = 200
