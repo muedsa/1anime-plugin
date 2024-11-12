@@ -10,13 +10,18 @@ import com.muedsa.tvbox.api.plugin.TvBoxContext
 import com.muedsa.tvbox.api.service.IMainScreenService
 import com.muedsa.tvbox.api.service.IMediaDetailService
 import com.muedsa.tvbox.api.service.IMediaSearchService
+import com.muedsa.tvbox.tool.PluginCookieJar
 import com.muedsa.tvbox.tool.PluginCookieStore
 import com.muedsa.tvbox.tool.SharedCookieSaver
+import com.muedsa.tvbox.tool.createOkHttpClient
 
 class An1mePlugin(tvBoxContext: TvBoxContext) : IPlugin(tvBoxContext = tvBoxContext) {
     override var options: PluginOptions = PluginOptions(enableDanDanPlaySearch = true)
 
-    private val cookieStore by lazy { PluginCookieStore(saver = SharedCookieSaver(store = tvBoxContext.store)) }
+    private val cookieSaver by lazy { SharedCookieSaver(store = tvBoxContext.store) }
+    private val cookieStore by lazy { PluginCookieStore(saver = cookieSaver) }
+    private val cookieJar by lazy { PluginCookieJar(saver = cookieSaver) }
+    private val okHttpClient by lazy { createOkHttpClient(debug = tvBoxContext.debug, cookieJar = cookieJar) }
     private val an1meService by lazy { An1meService() }
     private val mainScreenService by lazy {
         MainScreenService(
@@ -27,7 +32,8 @@ class An1mePlugin(tvBoxContext: TvBoxContext) : IPlugin(tvBoxContext = tvBoxCont
     private val mediaDetailService by lazy {
         MediaDetailService(
             an1meService = an1meService,
-            cookieStore = cookieStore
+            cookieStore = cookieStore,
+            okHttpClient = okHttpClient
         )
     }
     private val mediaSearchService by lazy {

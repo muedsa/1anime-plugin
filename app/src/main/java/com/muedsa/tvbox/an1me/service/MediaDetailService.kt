@@ -1,8 +1,6 @@
 package com.muedsa.tvbox.an1me.service
 
 import com.muedsa.tvbox.an1me.An1meConst
-import com.muedsa.tvbox.an1me.model.DPlayAddrs
-import com.muedsa.tvbox.an1me.model.DplayerResp
 import com.muedsa.tvbox.an1me.model.PlayerAAAA
 import com.muedsa.tvbox.api.data.MediaCard
 import com.muedsa.tvbox.api.data.MediaCardRow
@@ -14,9 +12,10 @@ import com.muedsa.tvbox.api.data.SavedMediaCard
 import com.muedsa.tvbox.api.service.IMediaDetailService
 import com.muedsa.tvbox.tool.ChromeUserAgent
 import com.muedsa.tvbox.tool.LenientJson
+import com.muedsa.tvbox.tool.decodeBase64ToStr
 import com.muedsa.tvbox.tool.feignChrome
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import org.jsoup.Connection.Method
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import timber.log.Timber
@@ -24,7 +23,8 @@ import java.net.CookieStore
 
 class MediaDetailService(
     private val an1meService: An1meService,
-    private val cookieStore: CookieStore
+    private val cookieStore: CookieStore,
+    private val okHttpClient: OkHttpClient
 ) : IMediaDetailService {
 
     override suspend fun getDetailData(mediaId: String, detailUrl: String): MediaDetail {
@@ -89,7 +89,7 @@ class MediaDetailService(
             try {
                 parseOtherModule(moduleEl = moduleEl, rows = rows)
             } catch (throwable: Throwable) {
-                Timber.e("parseOtherModule error", throwable)
+                Timber.e(throwable)
                 Timber.e(moduleEl.outerHtml())
             }
         }
@@ -175,50 +175,143 @@ class MediaDetailService(
             throw RuntimeException("解析地址失败")
         }
         Timber.d("playerAAAA : $playerAAAAJson")
-        val playerAAAA = LenientJson.decodeFromString<PlayerAAAA>(playerAAAAJson)
-        return if (playerAAAA.url.endsWith(suffix = ".m3u8", ignoreCase = true)) {
-            MediaHttpSource(url = playerAAAA.url)
-        } else if (playerAAAA.from == "dplayer") {
-            getHttpSourceFromDplayer(playerAAAA.url)
+        var playerAAAA = LenientJson.decodeFromString<PlayerAAAA>(playerAAAAJson)
+        if (playerAAAA.encrypt == 1) {
+            playerAAAA = playerAAAA.copy(
+                link = playerAAAA.link.decodeBase64ToStr(),
+                linkNext = playerAAAA.linkNext.decodeBase64ToStr(),
+                url = playerAAAA.url.decodeBase64ToStr(),
+                urlNext = playerAAAA.urlNext.decodeBase64ToStr()
+            )
+        }
+        return if (parseFunctionMap.keys.contains(playerAAAA.from)) {
+            parseFunctionMap[playerAAAA.from]?.invoke(playerAAAA, url)
+                ?: throw RuntimeException("解析地址失败")
         } else {
-            MediaHttpSource(url = playerAAAA.url)
+            createMediaHttpSource(url = playerAAAA.url)
         }
     }
 
-    private fun getHttpSourceFromDplayer(url: String): MediaHttpSource {
-        val body = Jsoup.connect(url)
-            .feignChrome(cookieStore = cookieStore)
-            .get()
-            .body()
-        val token = An1meConst.DPLAYER_VIDEO_TOKEN_REGEX.find(body.html())?.groups?.get(1)?.value
-        if (token.isNullOrEmpty()) {
-            Timber.e("getHttpSourceFromDplayer error: $url")
-            throw RuntimeException("解析播放地址")
-        }
-        val frameUrl = url.toHttpUrl()
-        val getUrl = frameUrl.newBuilder("/vod/within/playaddr/get")!!
-            .addQueryParameter("requestId", token)
-            .addQueryParameter("vcode", frameUrl.queryParameter("vcode"))
-            .build()
-            .toString()
-        val respStr = Jsoup.connect(getUrl)
-            .feignChrome(cookieStore = cookieStore)
-            .method(Method.GET)
-            .execute()
-            .body()
-        Timber.d(respStr)
-        val resp = LenientJson.decodeFromString<DplayerResp<DPlayAddrs>>(respStr)
-        val playAddrs = resp.data?.playAddr
-        if (playAddrs.isNullOrEmpty()) {
-            throw RuntimeException("解析播放地址")
-        }
-        val playAddr = playAddrs[0]
-        return MediaHttpSource(
-            url = "${playAddr.m3u8FileDomain}${playAddr.addr}",
+    private suspend fun createMediaHttpSource(url: String, referer: String? = null): MediaHttpSource =
+        MediaHttpSource(
+            url = url,
             httpHeaders = mapOf(
                 "User-Agent" to ChromeUserAgent,
-                "Referer" to url
+                "Referer" to (referer ?: an1meService.getSiteUrl())
             )
         )
+
+    private val parseFunctionMap =
+        mapOf<String, suspend (PlayerAAAA, String) -> MediaHttpSource>(
+            "cs3play" to { playerAAAA, referer ->
+                // AU
+                val bodyStr = getUrlStringContent(
+                    url = "${an1meService.getSiteUrl()}/addons/dp/player/art.php?key=0&from=&id=${playerAAAA.id}&api=&url=${playerAAAA.url}&jump=",
+                    referer = referer,
+                    failureMsg = "spplayer 解析地址失败，请求错误"
+                )
+                val mediaUrl = URL_IN_JS_REGEX.find(bodyStr)?.groups?.get(1)?.value
+                    ?: throw RuntimeException("spplayer 解析地址失败 url")
+                createMediaHttpSource(url = mediaUrl)
+            },
+            "s3player" to { playerAAAA, referer ->
+                // AS
+                val bodyStr = getUrlStringContent(
+                    url = "${an1meService.getSiteUrl()}/addons/dp/player/art.php?key=0&from=&id=${playerAAAA.id}&api=&url=${playerAAAA.url}&jump=",
+                    referer = referer,
+                    failureMsg = "spplayer 解析地址失败，请求错误"
+                )
+                val mediaUrl = URL_IN_JS_REGEX.find(bodyStr)?.groups?.get(1)?.value
+                    ?: throw RuntimeException("spplayer 解析地址失败 url")
+                createMediaHttpSource(url = mediaUrl)
+            },
+            "spplayer" to { playerAAAA, referer ->
+                // AP
+                val bodyStr = getUrlStringContent(
+                    url = "${an1meService.getSiteUrl()}/addons/dp/player/art.php?key=0&from=&id=${playerAAAA.id}&api=&url=${playerAAAA.url}&jump=",
+                    referer = referer,
+                    failureMsg = "spplayer 解析地址失败，请求错误"
+                )
+                val mediaUrl = URL_IN_JS_REGEX.find(bodyStr)?.groups?.get(1)?.value
+                    ?: throw RuntimeException("spplayer 解析地址失败 url")
+                createMediaHttpSource(url = mediaUrl)
+            },
+            "dplayer" to { playerAAAA, referer ->
+                // APP专属
+                val bodyStr = getUrlStringContent(
+                    url = "${an1meService.getSiteUrl()}/addons/dp/player/art.php?key=0&from=&id=${playerAAAA.id}&api=&url=${playerAAAA.url}&jump=",
+                    referer = referer,
+                    failureMsg = "dplayer 解析地址失败，请求错误"
+                )
+                val mediaUrl = URL_IN_JS_REGEX.find(bodyStr)?.groups?.get(1)?.value
+                    ?: throw RuntimeException("dplayer 解析地址失败 url")
+                createMediaHttpSource(url = mediaUrl)
+            },
+            "lzm3u8" to { playerAAAA, referer ->
+                // AL
+                val bodyStr = getUrlStringContent(
+                    url = "${an1meService.getSiteUrl()}/addons/dp/player/art.php?key=0&from=&id=${playerAAAA.id}&api=&url=${playerAAAA.url}&jump=",
+                    referer = referer,
+                    failureMsg = "spplayer 解析地址失败，请求错误"
+                )
+                val mediaUrl = URL_IN_JS_REGEX.find(bodyStr)?.groups?.get(1)?.value
+                    ?: throw RuntimeException("spplayer 解析地址失败 url")
+                createMediaHttpSource(url = mediaUrl)
+            },
+            "rrys" to { playerAAAA, referer ->
+                // RRYS
+                val bodyStr = getUrlStringContent(
+                    url = "${an1meService.getSiteUrl()}/addons/dp/player/art.php?key=0&from=&id=${playerAAAA.id}&api=&url=${playerAAAA.url}&jump=",
+                    referer = referer,
+                    failureMsg = "spplayer 解析地址失败，请求错误"
+                )
+                val mediaUrl = URL_IN_JS_REGEX.find(bodyStr)?.groups?.get(1)?.value
+                    ?: throw RuntimeException("spplayer 解析地址失败 url")
+                createMediaHttpSource(url = mediaUrl)
+            },
+            "hw8" to { playerAAAA, referer ->
+                // AW
+                val bodyStr = getUrlStringContent(
+                    url = "https://player.huawei8.live/player?id=${playerAAAA.id}&url=${playerAAAA.url}",
+                    referer = referer,
+                    failureMsg = "hw8 解析地址失败，请求错误"
+                )
+                val mediaUrl = URL_IN_JS_REGEX.find(bodyStr)?.groups?.get(1)?.value
+                    ?: throw RuntimeException("hw8 解析地址失败 url")
+                createMediaHttpSource(url = mediaUrl)
+            },
+            "heimuer" to { playerAAAA, referer ->
+                // AH
+                val bodyStr = getUrlStringContent(
+                    url = "${an1meService.getSiteUrl()}/addons/dp/player/art.php?key=0&from=&id=${playerAAAA.id}&api=&url=${playerAAAA.url}&jump=",
+                    referer = referer,
+                    failureMsg = "解析地址失败，请求错误"
+                )
+                val mediaUrl = URL_IN_JS_REGEX.find(bodyStr)?.groups?.get(1)?.value
+                    ?: throw RuntimeException("解析地址失败 url")
+                createMediaHttpSource(url = mediaUrl)
+            },
+        )
+
+    private fun getUrlStringContent(
+        url: String,
+        referer: String? = null,
+        failureMsg: String = "请求失败"
+    ): String {
+        val req = Request.Builder()
+            .url(url)
+            .apply {
+                referer?.let { addHeader("Referer", it) }
+            }
+            .addHeader("User-Agent", ChromeUserAgent)
+            .build()
+        val resp = okHttpClient.newCall(req).execute()
+        if (!resp.isSuccessful) throw RuntimeException(failureMsg)
+        val bodyStr = resp.body?.string() ?: throw RuntimeException(failureMsg)
+        return bodyStr
+    }
+
+    companion object {
+        private val URL_IN_JS_REGEX = "[\"']?url[\"']?: [\"'](http.*?)[\"'],".toRegex()
     }
 }
