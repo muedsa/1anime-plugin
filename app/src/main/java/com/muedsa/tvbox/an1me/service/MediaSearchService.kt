@@ -5,18 +5,21 @@ import com.muedsa.tvbox.api.data.MediaCard
 import com.muedsa.tvbox.api.data.MediaCardRow
 import com.muedsa.tvbox.api.service.IMediaSearchService
 import com.muedsa.tvbox.tool.feignChrome
-import org.jsoup.Jsoup
-import java.net.CookieStore
+import com.muedsa.tvbox.tool.get
+import com.muedsa.tvbox.tool.parseHtml
+import com.muedsa.tvbox.tool.toRequestBuild
+import okhttp3.OkHttpClient
 
 class MediaSearchService(
     private val an1meService: An1meService,
-    private val cookieStore: CookieStore
+    private val okHttpClient: OkHttpClient
 ) : IMediaSearchService {
 
     override suspend fun searchMedias(query: String): MediaCardRow {
-        val body = Jsoup.connect("${an1meService.getSiteUrl()}/vodsearch/-------------.html?wd=$query")
-            .feignChrome(cookieStore = cookieStore)
-            .get()
+        val body = "${an1meService.getSiteUrl()}/vodsearch/-------------.html?wd=$query".toRequestBuild()
+            .feignChrome()
+            .get(okHttpClient = okHttpClient)
+            .parseHtml()
             .body()
         val moduleEl = body.selectFirst("#main .content .module")
             ?: return MediaCardRow(

@@ -14,16 +14,15 @@ import com.muedsa.tvbox.tool.ChromeUserAgent
 import com.muedsa.tvbox.tool.LenientJson
 import com.muedsa.tvbox.tool.decodeBase64ToStr
 import com.muedsa.tvbox.tool.feignChrome
+import com.muedsa.tvbox.tool.get
+import com.muedsa.tvbox.tool.parseHtml
+import com.muedsa.tvbox.tool.toRequestBuild
 import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import timber.log.Timber
-import java.net.CookieStore
 
 class MediaDetailService(
     private val an1meService: An1meService,
-    private val cookieStore: CookieStore,
     private val okHttpClient: OkHttpClient
 ) : IMediaDetailService {
 
@@ -31,9 +30,10 @@ class MediaDetailService(
         if (!detailUrl.startsWith("/voddetail/")) {
             throw RuntimeException("不支持的类型 $detailUrl")
         }
-        val body = Jsoup.connect("${an1meService.getSiteUrl()}$detailUrl")
-            .feignChrome(cookieStore = cookieStore)
-            .get()
+        val body = "${an1meService.getSiteUrl()}$detailUrl".toRequestBuild()
+            .feignChrome()
+            .get(okHttpClient = okHttpClient)
+            .parseHtml()
             .body()
         val boxEl = body.selectFirst("#main .content .box")!!
         val imgUrl = boxEl.selectFirst(".module-item-cover .module-item-pic img")!!
@@ -163,9 +163,10 @@ class MediaDetailService(
             throw RuntimeException("不支持的播放地址-> ${episode.flag5}")
         }
         val url = "${an1meService.getSiteUrl()}${episode.flag5}"
-        val body = Jsoup.connect(url)
-            .feignChrome(cookieStore = cookieStore)
-            .get()
+        val body = url.toRequestBuild()
+            .feignChrome()
+            .get(okHttpClient = okHttpClient)
+            .parseHtml()
             .body()
         val scriptEl = body.selectFirst("#main .player-wrapper script")!!
         val result = An1meConst.PLAYER_INFO_REGEX.find(scriptEl.outerHtml())
@@ -298,14 +299,11 @@ class MediaDetailService(
         referer: String? = null,
         failureMsg: String = "请求失败"
     ): String {
-        val req = Request.Builder()
-            .url(url)
-            .apply {
-                referer?.let { addHeader("Referer", it) }
-            }
-            .addHeader("User-Agent", ChromeUserAgent)
-            .build()
-        val resp = okHttpClient.newCall(req).execute()
+        val resp = url.toRequestBuild()
+            .feignChrome(referer = referer)
+            .header("Connection", "close") // 这里使用http1.1
+            .header("http.protocol", "http/1.1") // 这里使用http1.1
+            .get(okHttpClient = okHttpClient)
         if (!resp.isSuccessful) throw RuntimeException(failureMsg)
         val bodyStr = resp.body?.string() ?: throw RuntimeException(failureMsg)
         return bodyStr

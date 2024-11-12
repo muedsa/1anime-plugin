@@ -8,8 +8,8 @@ import org.junit.Test
 
 class PlaySourceValidator {
 
-    private val an1meService = An1meService()
     private val okHttpClient = createOkHttpClient(debug = true)
+    private val an1meService = An1meService(okHttpClient = okHttpClient)
 
     @Test
     fun addonsDpPlayerIndexPhp_valid() = runTest {

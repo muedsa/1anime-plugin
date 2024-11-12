@@ -6,19 +6,22 @@ import com.muedsa.tvbox.api.data.MediaCardRow
 import com.muedsa.tvbox.api.data.MediaCardType
 import com.muedsa.tvbox.api.service.IMainScreenService
 import com.muedsa.tvbox.tool.feignChrome
-import org.jsoup.Jsoup
+import com.muedsa.tvbox.tool.get
+import com.muedsa.tvbox.tool.parseHtml
+import com.muedsa.tvbox.tool.toRequestBuild
+import okhttp3.OkHttpClient
 import org.jsoup.nodes.Element
-import java.net.CookieStore
 
 class MainScreenService(
     private val an1meService: An1meService,
-    private val cookieStore: CookieStore
+    private val okHttpClient: OkHttpClient
 ) : IMainScreenService {
 
     override suspend fun getRowsData(): List<MediaCardRow> {
-        val body = Jsoup.connect("${an1meService.getSiteUrl()}/")
-            .feignChrome(cookieStore = cookieStore)
-            .get()
+        val body = "${an1meService.getSiteUrl()}/".toRequestBuild()
+            .feignChrome()
+            .get(okHttpClient = okHttpClient)
+            .parseHtml()
             .body()
         val rows: MutableList<MediaCardRow> = mutableListOf()
         body.select("#index-main >.content >.module")

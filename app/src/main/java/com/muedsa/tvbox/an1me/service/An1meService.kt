@@ -1,21 +1,29 @@
 package com.muedsa.tvbox.an1me.service
 
 import com.muedsa.tvbox.tool.feignChrome
+import com.muedsa.tvbox.tool.get
+import com.muedsa.tvbox.tool.parseHtml
+import com.muedsa.tvbox.tool.toRequestBuild
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import org.jsoup.Jsoup
+import okhttp3.OkHttpClient
 import timber.log.Timber
 
-class An1meService {
+class An1meService(
+    private val okHttpClient: OkHttpClient
+) {
     private var siteUrl: String? = null
     private val mutex = Mutex()
 
     suspend fun getSiteUrl(): String = mutex.withLock {
         if (siteUrl == null) {
-            val body = Jsoup.connect("https://1anime.org/")
+            val body = "https://1anime.org/".toRequestBuild()
                 .feignChrome()
-                .get()
+                .header("Connection", "close") // 这里使用http1.1
+                .header("http.protocol", "http/1.1") // 这里使用http1.1
+                .get(okHttpClient = okHttpClient)
+                .parseHtml()
                 .body()
             val links = body.select(".release-main .links ul li a[href]")
                 .map { it.attr("href") }
