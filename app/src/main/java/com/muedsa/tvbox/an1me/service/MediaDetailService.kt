@@ -12,6 +12,7 @@ import com.muedsa.tvbox.api.data.SavedMediaCard
 import com.muedsa.tvbox.api.service.IMediaDetailService
 import com.muedsa.tvbox.tool.ChromeUserAgent
 import com.muedsa.tvbox.tool.LenientJson
+import com.muedsa.tvbox.tool.checkSuccess
 import com.muedsa.tvbox.tool.decodeBase64ToStr
 import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
@@ -33,6 +34,7 @@ class MediaDetailService(
         val body = "${an1meService.getSiteUrl()}$detailUrl".toRequestBuild()
             .feignChrome()
             .get(okHttpClient = okHttpClient)
+            .checkSuccess()
             .parseHtml()
             .body()
         val boxEl = body.selectFirst("#main .content .box")!!
@@ -166,6 +168,7 @@ class MediaDetailService(
         val body = url.toRequestBuild()
             .feignChrome()
             .get(okHttpClient = okHttpClient)
+            .checkSuccess()
             .parseHtml()
             .body()
         val scriptEl = body.selectFirst("#main .player-wrapper script")!!
@@ -301,10 +304,10 @@ class MediaDetailService(
     ): String {
         val resp = url.toRequestBuild()
             .feignChrome(referer = referer)
-            .header("Connection", "close") // 这里使用http1.1
-            .header("http.protocol", "http/1.1") // 这里使用http1.1
             .get(okHttpClient = okHttpClient)
-        if (!resp.isSuccessful) throw RuntimeException(failureMsg)
+            .checkSuccess {
+                if (!it.isSuccessful) throw RuntimeException(failureMsg)
+            }
         val bodyStr = resp.body?.string() ?: throw RuntimeException(failureMsg)
         return bodyStr
     }

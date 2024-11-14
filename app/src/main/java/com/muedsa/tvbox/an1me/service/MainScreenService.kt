@@ -5,6 +5,7 @@ import com.muedsa.tvbox.api.data.MediaCard
 import com.muedsa.tvbox.api.data.MediaCardRow
 import com.muedsa.tvbox.api.data.MediaCardType
 import com.muedsa.tvbox.api.service.IMainScreenService
+import com.muedsa.tvbox.tool.checkSuccess
 import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
 import com.muedsa.tvbox.tool.parseHtml
@@ -21,6 +22,7 @@ class MainScreenService(
         val body = "${an1meService.getSiteUrl()}/".toRequestBuild()
             .feignChrome()
             .get(okHttpClient = okHttpClient)
+            .checkSuccess()
             .parseHtml()
             .body()
         val rows: MutableList<MediaCardRow> = mutableListOf()

@@ -4,6 +4,7 @@ import com.muedsa.tvbox.an1me.An1meConst
 import com.muedsa.tvbox.api.data.MediaCard
 import com.muedsa.tvbox.api.data.MediaCardRow
 import com.muedsa.tvbox.api.service.IMediaSearchService
+import com.muedsa.tvbox.tool.checkSuccess
 import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
 import com.muedsa.tvbox.tool.parseHtml
@@ -19,6 +20,7 @@ class MediaSearchService(
         val body = "${an1meService.getSiteUrl()}/vodsearch/-------------.html?wd=$query".toRequestBuild()
             .feignChrome()
             .get(okHttpClient = okHttpClient)
+            .checkSuccess()
             .parseHtml()
             .body()
         val moduleEl = body.selectFirst("#main .content .module")

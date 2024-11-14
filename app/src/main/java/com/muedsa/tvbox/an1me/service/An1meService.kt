@@ -1,5 +1,6 @@
 package com.muedsa.tvbox.an1me.service
 
+import com.muedsa.tvbox.tool.checkSuccess
 import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
 import com.muedsa.tvbox.tool.parseHtml
@@ -20,9 +21,8 @@ class An1meService(
         if (siteUrl == null) {
             val body = "https://1anime.org/".toRequestBuild()
                 .feignChrome()
-                .header("Connection", "close") // 这里使用http1.1
-                .header("http.protocol", "http/1.1") // 这里使用http1.1
                 .get(okHttpClient = okHttpClient)
+                .checkSuccess()
                 .parseHtml()
                 .body()
             val links = body.select(".release-main .links ul li a[href]")
