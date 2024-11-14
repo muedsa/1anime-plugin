@@ -10,9 +10,12 @@ import com.muedsa.tvbox.api.plugin.TvBoxContext
 import com.muedsa.tvbox.api.service.IMainScreenService
 import com.muedsa.tvbox.api.service.IMediaDetailService
 import com.muedsa.tvbox.api.service.IMediaSearchService
+import com.muedsa.tvbox.tool.IPv6Checker
 import com.muedsa.tvbox.tool.PluginCookieJar
 import com.muedsa.tvbox.tool.SharedCookieSaver
 import com.muedsa.tvbox.tool.createOkHttpClient
+import timber.log.Timber
+import java.util.concurrent.TimeUnit
 
 class An1mePlugin(tvBoxContext: TvBoxContext) : IPlugin(tvBoxContext = tvBoxContext) {
     override var options: PluginOptions = PluginOptions(enableDanDanPlaySearch = true)
@@ -22,8 +25,12 @@ class An1mePlugin(tvBoxContext: TvBoxContext) : IPlugin(tvBoxContext = tvBoxCont
             debug = tvBoxContext.debug,
             cookieJar = PluginCookieJar(
                 saver = SharedCookieSaver(store = tvBoxContext.store)
-            )
-        )
+            ),
+            onlyIpv4 = tvBoxContext.iPv6Status != IPv6Checker.IPv6Status.SUPPORTED
+        ) {
+            callTimeout(40, TimeUnit.SECONDS)
+            readTimeout(60, TimeUnit.SECONDS)
+        }
     }
     private val an1meService by lazy { An1meService(okHttpClient = okHttpClient) }
     private val mainScreenService by lazy {
@@ -49,5 +56,7 @@ class An1mePlugin(tvBoxContext: TvBoxContext) : IPlugin(tvBoxContext = tvBoxCont
     override fun provideMediaSearchService(): IMediaSearchService = mediaSearchService
 
     override suspend fun onInit() {}
-    override suspend fun onLaunched() {}
+    override suspend fun onLaunched() {
+        Timber.d("${tvBoxContext.iPv6Status}")
+    }
 }
