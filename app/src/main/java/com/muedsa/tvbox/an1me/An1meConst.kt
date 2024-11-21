@@ -926,11 +926,10 @@ object An1meConst {
                     )
                 )
                 val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-                for (year in 1982..currentYear) {
+                for (year in currentYear downTo 1982) {
                     MediaCatalogOptionItem(
                         name = "$year",
                         value = "$year",
-                        defaultChecked = true,
                     )
                 }
             }
