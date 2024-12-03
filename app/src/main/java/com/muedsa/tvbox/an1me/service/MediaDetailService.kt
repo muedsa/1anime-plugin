@@ -2,6 +2,8 @@ package com.muedsa.tvbox.an1me.service
 
 import com.muedsa.tvbox.an1me.An1meConst
 import com.muedsa.tvbox.an1me.model.PlayerAAAA
+import com.muedsa.tvbox.api.data.DanmakuData
+import com.muedsa.tvbox.api.data.DanmakuDataFlow
 import com.muedsa.tvbox.api.data.MediaCard
 import com.muedsa.tvbox.api.data.MediaCardRow
 import com.muedsa.tvbox.api.data.MediaDetail
@@ -311,6 +313,11 @@ class MediaDetailService(
         val bodyStr = resp.body?.string() ?: throw RuntimeException(failureMsg)
         return bodyStr
     }
+
+    override suspend fun getEpisodeDanmakuDataList(episode: MediaEpisode): List<DanmakuData> =
+        emptyList()
+
+    override suspend fun getEpisodeDanmakuDataFlow(episode: MediaEpisode): DanmakuDataFlow? = null
 
     companion object {
         private val URL_IN_JS_REGEX = "[\"']?url[\"']?: [\"'](http.*?)[\"'],".toRegex()

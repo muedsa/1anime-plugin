@@ -1,8 +1,8 @@
 package com.muedsa.tvbox.an1me.service
 
-import com.muedsa.tvbox.api.data.MediaCardType
 import com.muedsa.tvbox.an1me.TestPlugin
 import com.muedsa.tvbox.an1me.checkMediaCard
+import com.muedsa.tvbox.api.data.MediaCardType
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
@@ -18,9 +18,11 @@ class MediaDetailServiceTest {
         check(detail.detailUrl.isNotEmpty())
         check(detail.backgroundImageUrl.isNotEmpty())
         println("${detail.id} ${detail.title} ${detail.description}")
-        checkMediaCard(detail.favoritedMediaCard, cardType = MediaCardType.STANDARD)
-        check(detail.favoritedMediaCard.cardWidth > 0)
-        check(detail.favoritedMediaCard.cardHeight > 0)
+        detail.favoritedMediaCard?.let { favoritedMediaCard ->
+            checkMediaCard(favoritedMediaCard, cardType = MediaCardType.STANDARD)
+            check(favoritedMediaCard.cardWidth > 0)
+            check(favoritedMediaCard.cardHeight > 0)
+        }
         check(detail.playSourceList.isNotEmpty())
         detail.playSourceList.forEach { mediaPlaySource ->
             check(mediaPlaySource.id.isNotEmpty())
