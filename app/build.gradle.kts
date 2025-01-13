@@ -1,3 +1,7 @@
+import com.android.build.gradle.internal.tasks.DexMergingTask
+import com.android.tools.smali.dexlib2.DexFileFactory
+import com.android.tools.smali.dexlib2.writer.io.FileDataStore
+import com.android.tools.smali.dexlib2.writer.pool.DexPool
 import java.io.FileInputStream
 import java.util.Properties
 
@@ -77,4 +81,37 @@ dependencies {
     testImplementation(project(":api"))
     testImplementation(libs.junit4)
     testImplementation(libs.kotlinx.coroutines.test)
+}
+
+tasks.withType<DexMergingTask> {
+    doLast {
+        println("taskName: $name $variantName")
+        if (name.startsWith("mergeExtDex")) {
+            outputDir.get().asFile.listFiles().forEach {
+                removePackagesFromDex(
+                    file = it,
+                    excludedPackages = listOf("kotlin", "kotlinx", "org.intellij", "org.jetbrains"),
+                )
+            }
+        }
+    }
+}
+
+fun removePackagesFromDex(file: File, excludedPackages: List<String>) {
+    println("deletePackagesFromDex: ${file.absolutePath}")
+    val dexFile = DexFileFactory.loadDexFile(file, null)
+    val excludedClassTypes = excludedPackages.map { "L${it.replace(".", "/")}/" }
+    val filteredClasses = dexFile.classes.filter { classDef ->
+        !excludedClassTypes.any { classDef.type.startsWith(it) }
+    }
+    if (filteredClasses.isNotEmpty()) {
+        val dexPool = DexPool(dexFile.opcodes)
+        filteredClasses.forEach {
+            println(it.type)
+            dexPool.internClass(it)
+        }
+        dexPool.writeTo(FileDataStore(file))
+    } else {
+        file.delete()
+    }
 }
