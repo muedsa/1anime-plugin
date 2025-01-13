@@ -190,7 +190,9 @@ class MediaDetailService(
                 urlNext = playerAAAA.urlNext.decodeBase64ToStr()
             )
         }
-        return if (parseFunctionMap.keys.contains(playerAAAA.from)) {
+        return if (playerAAAA.url.endsWith(".m3u8") || playerAAAA.url.endsWith(".mp4")) {
+            createMediaHttpSource(url = playerAAAA.url)
+        } else if (parseFunctionMap.keys.contains(playerAAAA.from)) {
             parseFunctionMap[playerAAAA.from]?.invoke(playerAAAA, url)
                 ?: throw RuntimeException("解析地址失败")
         } else {
