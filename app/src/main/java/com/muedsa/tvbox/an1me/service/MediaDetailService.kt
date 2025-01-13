@@ -214,7 +214,7 @@ class MediaDetailService(
             "cs3play" to { playerAAAA, referer ->
                 // AU
                 val bodyStr = getUrlStringContent(
-                    url = "${an1meService.getSiteUrl()}/addons/dp/player/art.php?key=0&from=&id=${playerAAAA.id}&api=&url=${playerAAAA.url}&jump=",
+                    url = "${an1meService.getSiteUrl()}/addons/dp/player/index.php?key=0&&id=${playerAAAA.id}&url=${playerAAAA.url}",
                     referer = referer,
                     failureMsg = "spplayer 解析地址失败，请求错误"
                 )
@@ -225,7 +225,7 @@ class MediaDetailService(
             "s3player" to { playerAAAA, referer ->
                 // AS
                 val bodyStr = getUrlStringContent(
-                    url = "${an1meService.getSiteUrl()}/addons/dp/player/art.php?key=0&from=&id=${playerAAAA.id}&api=&url=${playerAAAA.url}&jump=",
+                    url = "${an1meService.getSiteUrl()}/addons/dp/player/index.php?key=0&&id=${playerAAAA.id}&url=${playerAAAA.url}",
                     referer = referer,
                     failureMsg = "spplayer 解析地址失败，请求错误"
                 )
@@ -236,7 +236,7 @@ class MediaDetailService(
             "spplayer" to { playerAAAA, referer ->
                 // AP
                 val bodyStr = getUrlStringContent(
-                    url = "${an1meService.getSiteUrl()}/addons/dp/player/art.php?key=0&from=&id=${playerAAAA.id}&api=&url=${playerAAAA.url}&jump=",
+                    url = "${an1meService.getSiteUrl()}/addons/dp/player/index.php?key=0&&id=${playerAAAA.id}&url=${playerAAAA.url}",
                     referer = referer,
                     failureMsg = "spplayer 解析地址失败，请求错误"
                 )
@@ -247,7 +247,7 @@ class MediaDetailService(
             "dplayer" to { playerAAAA, referer ->
                 // APP专属
                 val bodyStr = getUrlStringContent(
-                    url = "${an1meService.getSiteUrl()}/addons/dp/player/art.php?key=0&from=&id=${playerAAAA.id}&api=&url=${playerAAAA.url}&jump=",
+                    url = "${an1meService.getSiteUrl()}/addons/dp/player/index.php?key=0&&id=${playerAAAA.id}&url=${playerAAAA.url}",
                     referer = referer,
                     failureMsg = "dplayer 解析地址失败，请求错误"
                 )
@@ -258,7 +258,7 @@ class MediaDetailService(
             "lzm3u8" to { playerAAAA, referer ->
                 // AL
                 val bodyStr = getUrlStringContent(
-                    url = "${an1meService.getSiteUrl()}/addons/dp/player/art.php?key=0&from=&id=${playerAAAA.id}&api=&url=${playerAAAA.url}&jump=",
+                    url = "${an1meService.getSiteUrl()}/addons/dp/player/index.php?key=0&&id=${playerAAAA.id}&url=${playerAAAA.url}",
                     referer = referer,
                     failureMsg = "spplayer 解析地址失败，请求错误"
                 )
@@ -269,7 +269,7 @@ class MediaDetailService(
             "rrys" to { playerAAAA, referer ->
                 // RRYS
                 val bodyStr = getUrlStringContent(
-                    url = "${an1meService.getSiteUrl()}/addons/dp/player/art.php?key=0&from=&id=${playerAAAA.id}&api=&url=${playerAAAA.url}&jump=",
+                    url = "${an1meService.getSiteUrl()}/addons/dp/player/index.php?key=0&&id=${playerAAAA.id}&url=${playerAAAA.url}",
                     referer = referer,
                     failureMsg = "spplayer 解析地址失败，请求错误"
                 )
@@ -291,7 +291,7 @@ class MediaDetailService(
             "heimuer" to { playerAAAA, referer ->
                 // AH
                 val bodyStr = getUrlStringContent(
-                    url = "${an1meService.getSiteUrl()}/addons/dp/player/art.php?key=0&from=&id=${playerAAAA.id}&api=&url=${playerAAAA.url}&jump=",
+                    url = "${an1meService.getSiteUrl()}/addons/dp/player/index.php?key=0&&id=${playerAAAA.id}&url=${playerAAAA.url}",
                     referer = referer,
                     failureMsg = "解析地址失败，请求错误"
                 )
