@@ -17,7 +17,7 @@ object An1meConst {
         0XFF_42_49_49,
         0XFF_78_42_13
     )
-    val NOT_SUPPORT_ROW = listOf("专题", "图文", "最新影片")
+    val NOT_SUPPORT_ROW = listOf("专题", "图文")
 
     val PLAYER_INFO_REGEX = "<script type=\"text/javascript\">var player_aaaa=(\\{.*?\\})</script>".toRegex()
 

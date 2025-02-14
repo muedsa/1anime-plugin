@@ -15,7 +15,6 @@ import com.muedsa.tvbox.api.service.IMediaDetailService
 import com.muedsa.tvbox.tool.ChromeUserAgent
 import com.muedsa.tvbox.tool.LenientJson
 import com.muedsa.tvbox.tool.checkSuccess
-import com.muedsa.tvbox.tool.decodeBase64ToStr
 import com.muedsa.tvbox.tool.feignChrome
 import com.muedsa.tvbox.tool.get
 import com.muedsa.tvbox.tool.parseHtml
@@ -23,6 +22,7 @@ import com.muedsa.tvbox.tool.toRequestBuild
 import okhttp3.OkHttpClient
 import org.jsoup.nodes.Element
 import timber.log.Timber
+import java.net.URLDecoder
 
 class MediaDetailService(
     private val an1meService: An1meService,
@@ -184,10 +184,10 @@ class MediaDetailService(
         var playerAAAA = LenientJson.decodeFromString<PlayerAAAA>(playerAAAAJson)
         if (playerAAAA.encrypt == 1) {
             playerAAAA = playerAAAA.copy(
-                link = playerAAAA.link.decodeBase64ToStr(),
-                linkNext = playerAAAA.linkNext.decodeBase64ToStr(),
-                url = playerAAAA.url.decodeBase64ToStr(),
-                urlNext = playerAAAA.urlNext.decodeBase64ToStr()
+                link = URLDecoder.decode(playerAAAA.link, Charsets.UTF_8.name()),
+                linkNext = URLDecoder.decode(playerAAAA.linkNext, Charsets.UTF_8.name()),
+                url = URLDecoder.decode(playerAAAA.url, Charsets.UTF_8.name()),
+                urlNext = URLDecoder.decode(playerAAAA.urlNext, Charsets.UTF_8.name()),
             )
         }
         return if (playerAAAA.url.endsWith(".m3u8") || playerAAAA.url.endsWith(".mp4")) {

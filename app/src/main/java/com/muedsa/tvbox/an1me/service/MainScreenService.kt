@@ -27,12 +27,9 @@ class MainScreenService(
             .body()
         val rows: MutableList<MediaCardRow> = mutableListOf()
         body.select("#index-main >.content >.module")
+            .filter { !it.hasClass("homepage_homepage_channelnav") && !it.hasClass("module-bg") }
             .forEach { moduleEl ->
-                if (!moduleEl.hasClass("homepage_homepage_channelnav")
-                    && !moduleEl.hasClass("module-bg")
-                ) {
-                    parseModuleEl(moduleEl = moduleEl, rows = rows)
-                }
+                parseModuleEl(moduleEl = moduleEl, rows = rows)
             }
         return rows
     }
@@ -41,7 +38,7 @@ class MainScreenService(
         if (moduleEl.selectFirst(">.module-heading") != null) {
             parseModuleMainEl(mainEl = moduleEl, rows = rows)
         } else {
-            val mainEl = moduleEl.selectFirst(">.module-main")
+            var mainEl = moduleEl.selectFirst(">.module-main")
             val sideEl = moduleEl.selectFirst(">.module-side")
             if (mainEl != null) {
                 parseModuleMainEl(mainEl = mainEl, rows = rows)
@@ -61,26 +58,28 @@ class MainScreenService(
         mainEl.selectFirst(">.module-heading >.module-heading")?.let {
             rowTitle = "$rowTitle ${it.text().trim()}"
         }
-        val itemEls = mainEl.select(">.module-list >.module-items .module-item")
-        val row = MediaCardRow(
-            title = rowTitle,
-            list = itemEls.map { itemEL ->
-                val imgEl = itemEL.selectFirst(".module-item-cover .module-item-pic img")!!
-                val aEl = itemEL.selectFirst(".module-item-titlebox a")!!
-                val textEl = itemEL.selectFirst(".module-item-text")!!
-                val urlPath = aEl.attr("href")
-                MediaCard(
-                    id = urlPath,
-                    title = aEl.text().trim(),
-                    detailUrl = urlPath,
-                    subTitle = textEl.text().trim(),
-                    coverImageUrl = imgEl.attr("data-src")
-                )
-            },
-            cardWidth = An1meConst.CARD_WIDTH,
-            cardHeight = An1meConst.CARD_HEIGHT
-        )
-        rows.add(row)
+        val itemEls = mainEl.select(".module-list >.module-items .module-item")
+        if (itemEls.isNotEmpty()) {
+            val row = MediaCardRow(
+                title = rowTitle,
+                list = itemEls.map { itemEL ->
+                    val imgEl = itemEL.selectFirst(".module-item-cover .module-item-pic img")!!
+                    val aEl = itemEL.selectFirst(".module-item-titlebox a")!!
+                    val textEl = itemEL.selectFirst(".module-item-text")!!
+                    val urlPath = aEl.attr("href")
+                    MediaCard(
+                        id = urlPath,
+                        title = aEl.text().trim(),
+                        detailUrl = urlPath,
+                        subTitle = textEl.text().trim(),
+                        coverImageUrl = imgEl.attr("data-src")
+                    )
+                },
+                cardWidth = An1meConst.CARD_WIDTH,
+                cardHeight = An1meConst.CARD_HEIGHT
+            )
+            rows.add(row)
+        }
     }
 
     private fun parseModuleSideEl(sideEl: Element, rows: MutableList<MediaCardRow>) {
@@ -90,23 +89,25 @@ class MainScreenService(
             return
         }
         val aEls = sideEl.select(">.module-side-list .module-textlist a")
-        val rowIndex = rows.count { c -> c.cardType == MediaCardType.NOT_IMAGE }
-        val row = MediaCardRow(
-            title = rowTitle,
-            list = aEls.mapIndexed { index, aEl ->
-                val urlPath = aEl.attr("href")
-                MediaCard(
-                    id = urlPath,
-                    title = aEl.selectFirst(".text-list-title h3")!!.text().trim(),
-                    detailUrl = urlPath,
-                    subTitle = aEl.selectFirst(".text-list-title p")?.text()?.trim(),
-                    backgroundColor = An1meConst.CARD_COLORS[(index + rowIndex) % An1meConst.CARD_COLORS.size]
-                )
-            },
-            cardWidth = An1meConst.NOT_IMAGE_CARD_WIDTH,
-            cardHeight = An1meConst.NOT_IMAGE_CARD_HEIGHT,
-            cardType = MediaCardType.NOT_IMAGE
-        )
-        rows.add(row)
+        if (aEls.isNotEmpty()) {
+            val rowIndex = rows.count { c -> c.cardType == MediaCardType.NOT_IMAGE }
+            val row = MediaCardRow(
+                title = rowTitle,
+                list = aEls.mapIndexed { index, aEl ->
+                    val urlPath = aEl.attr("href")
+                    MediaCard(
+                        id = urlPath,
+                        title = aEl.selectFirst(".text-list-title h3")!!.text().trim(),
+                        detailUrl = urlPath,
+                        subTitle = aEl.selectFirst(".text-list-title p")?.text()?.trim(),
+                        backgroundColor = An1meConst.CARD_COLORS[(index + rowIndex) % An1meConst.CARD_COLORS.size]
+                    )
+                },
+                cardWidth = An1meConst.NOT_IMAGE_CARD_WIDTH,
+                cardHeight = An1meConst.NOT_IMAGE_CARD_HEIGHT,
+                cardType = MediaCardType.NOT_IMAGE
+            )
+            rows.add(row)
+        }
     }
 }
