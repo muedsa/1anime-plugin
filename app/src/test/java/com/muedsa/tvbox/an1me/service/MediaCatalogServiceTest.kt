@@ -5,7 +5,13 @@ import com.muedsa.tvbox.an1me.checkMediaCard
 import com.muedsa.tvbox.api.data.MediaCatalogOption
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import kotlin.intArrayOf
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28])
 class MediaCatalogServiceTest {
 
     private val service = TestPlugin.provideMediaCatalogService()

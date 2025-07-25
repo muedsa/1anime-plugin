@@ -38,7 +38,7 @@ class MainScreenService(
         if (moduleEl.selectFirst(">.module-heading") != null) {
             parseModuleMainEl(mainEl = moduleEl, rows = rows)
         } else {
-            var mainEl = moduleEl.selectFirst(">.module-main")
+            val mainEl = moduleEl.selectFirst(">.module-main")
             val sideEl = moduleEl.selectFirst(">.module-side")
             if (mainEl != null) {
                 parseModuleMainEl(mainEl = mainEl, rows = rows)
@@ -78,7 +78,9 @@ class MainScreenService(
                 cardWidth = An1meConst.CARD_WIDTH,
                 cardHeight = An1meConst.CARD_HEIGHT
             )
-            rows.add(row)
+            if (row.list.isNotEmpty()) {
+                rows.add(row)
+            }
         }
     }
 
@@ -107,7 +109,9 @@ class MainScreenService(
                 cardHeight = An1meConst.NOT_IMAGE_CARD_HEIGHT,
                 cardType = MediaCardType.NOT_IMAGE
             )
-            rows.add(row)
+            if (row.list.isNotEmpty()) {
+                rows.add(row)
+            }
         }
     }
 }

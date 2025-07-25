@@ -156,7 +156,9 @@ class MediaDetailService(
             cardWidth = An1meConst.CARD_WIDTH,
             cardHeight = An1meConst.CARD_HEIGHT
         )
-        rows.add(row)
+        if (row.list.isNotEmpty()) {
+            rows.add(row)
+        }
     }
 
     override suspend fun getEpisodePlayInfo(
@@ -312,7 +314,7 @@ class MediaDetailService(
             .checkSuccess {
                 if (!it.isSuccessful) throw RuntimeException(failureMsg)
             }
-        val bodyStr = resp.body?.string() ?: throw RuntimeException(failureMsg)
+        val bodyStr = resp.body.string()
         return bodyStr
     }
 

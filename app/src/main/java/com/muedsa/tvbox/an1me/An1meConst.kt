@@ -27,23 +27,24 @@ object An1meConst {
             value = "category",
             required = true,
             items = listOf(
-                MediaCatalogOptionItem(
-                    name = "TV动画",
-                    value = "1",
-                    defaultChecked = true,
-                ),
-                MediaCatalogOptionItem(
-                    name = "剧场版",
-                    value = "2",
-                ),
+//                MediaCatalogOptionItem(
+//                    name = "TV动画",
+//                    value = "1",
+//                    defaultChecked = true,
+//                ),
+//                MediaCatalogOptionItem(
+//                    name = "剧场版",
+//                    value = "2",
+//                ),
                 MediaCatalogOptionItem(
                     name = "绅士",
                     value = "3",
+                    defaultChecked = true,
                 ),
-                MediaCatalogOptionItem(
-                    name = "电影",
-                    value = "4",
-                ),
+//                MediaCatalogOptionItem(
+//                    name = "电影",
+//                    value = "4",
+//                ),
             )
         ),
         MediaCatalogOption(
