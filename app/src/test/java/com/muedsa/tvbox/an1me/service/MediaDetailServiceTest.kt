@@ -46,7 +46,8 @@ class MediaDetailServiceTest {
 
     @Test
     fun getEpisodePlayInfo_test() = runTest{
-        val detail = mediaDetailService.getDetailData("/voddetail/8221.html", "/voddetail/8221.html")
+        val mediaCard = mainScreenService.getRowsData()[0].list[0]
+        val detail = mediaDetailService.getDetailData(mediaCard.id, mediaCard.detailUrl)
         check(detail.playSourceList.isNotEmpty())
         check(detail.playSourceList.flatMap { it.episodeList }.isNotEmpty())
         val mediaPlaySource = detail.playSourceList[0]
@@ -59,7 +60,8 @@ class MediaDetailServiceTest {
 
     @Test
     fun getDplayerEpisodePlayInfo_test() = runTest {
-        val detail = mediaDetailService.getDetailData("/voddetail/8221.html", "/voddetail/8221.html")
+        val mediaCard = mainScreenService.getRowsData()[0].list[0]
+        val detail = mediaDetailService.getDetailData(mediaCard.id, mediaCard.detailUrl)
         check(detail.playSourceList.isNotEmpty())
         check(detail.playSourceList.flatMap { it.episodeList }.isNotEmpty())
         val mediaPlaySource = detail.playSourceList.find { it.id == "APP专属" }!!
