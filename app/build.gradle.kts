@@ -7,7 +7,6 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
 }
 
@@ -19,12 +18,12 @@ if (keystorePropertiesFile.exists() && keystorePropertiesFile.canRead()) {
 
 android {
     namespace = "com.muedsa.tvbox.an1me"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.muedsa.tvbox.an1me"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 37
         versionCode = 15
         versionName = "0.1.1"
     }
@@ -61,24 +60,29 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+}
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
-
-    // 修改APK文件名
-    applicationVariants.all {
-        outputs.all {
-            if (this is com.android.build.gradle.internal.api.ApkVariantOutputImpl) {
-                outputFileName = "${rootProject.name}-${versionName}-${buildType.name}.apk.tbp"
-            }
+androidComponents {
+    // 修改文件名
+    onVariants { variant ->
+        val buildTypeName = variant.buildType ?: "unknown"
+        variant.outputs.forEach { output ->
+            val versionName = output.versionName.orNull ?: "0.0.0"
+            output.outputFileName = "${rootProject.name}-${versionName}-${buildTypeName}.apk.tbp"
         }
     }
 }
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
+}
+
 dependencies {
     //implementation(libs.androidx.core.ktx)
-    compileOnly(project(":api"))
-    testImplementation(project(":api"))
+    compileOnly(libs.tvbox.api)
+    testImplementation(libs.tvbox.api)
     testImplementation(libs.junit4)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.androidx.test.core)
